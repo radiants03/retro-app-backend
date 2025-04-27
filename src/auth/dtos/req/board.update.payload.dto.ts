@@ -10,6 +10,11 @@ export class BoardUpdatePayloadDto {
   @ApiProperty({ example: true })
   @IsOptional()
   @IsBoolean()
+  show_names: boolean;
+
+  @ApiProperty({ example: true })
+  @IsOptional()
+  @IsBoolean()
   show_likes: boolean;
 
   @ApiProperty({ example: true })

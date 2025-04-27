@@ -69,7 +69,7 @@ export class BoardsService {
     userId: number,
   ): Promise<BoardSingleResponseDto> {
     const board = await this.boardRepository.findOne({
-      where: { id: boardId, user: { id: userId } },
+      where: { id: boardId },
     });
 
     if (!board) {
@@ -95,7 +95,7 @@ export class BoardsService {
     boardUpdatePayloadDto: BoardUpdatePayloadDto,
   ): Promise<BoardSingleResponseDto> {
     const board = await this.boardRepository.findOne({
-      where: { id: boardId, user: { id: userId } },
+      where: { id: boardId },
     });
 
     if (!board) {

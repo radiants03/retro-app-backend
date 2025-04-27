@@ -58,6 +58,7 @@ export class BoardsService {
     const savedBoard = await this.boardRepository.save(newBoard);
 
     const response: BoardCreateResponseDto = {
+      id: savedBoard.id,
       title: savedBoard.title,
     };
     return response;
@@ -77,6 +78,7 @@ export class BoardsService {
 
     const response: BoardSingleResponseDto = {
       title: board.title,
+      show_names: board.show_name,
       show_likes: board.show_like,
       show_comments: board.show_comments,
       is_public: board.is_public,
@@ -101,6 +103,7 @@ export class BoardsService {
     }
 
     board.title = boardUpdatePayloadDto.title;
+    board.show_name = boardUpdatePayloadDto.show_names;
     board.show_like = boardUpdatePayloadDto.show_likes;
     board.show_comments = boardUpdatePayloadDto.show_comments;
     board.is_public = boardUpdatePayloadDto.is_public;
@@ -109,6 +112,7 @@ export class BoardsService {
 
     const response: BoardSingleResponseDto = {
       title: updatedBoard.title,
+      show_names: updatedBoard.show_name,
       show_likes: updatedBoard.show_like,
       show_comments: updatedBoard.show_comments,
       is_public: updatedBoard.is_public,
@@ -134,7 +138,7 @@ export class BoardsService {
     await this.boardRepository.remove(board);
 
     return {
-      message: 'Board deleted successfully'
+      message: 'Board deleted successfully',
     };
   }
 }

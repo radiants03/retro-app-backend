@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CategoryCreatePayloadDto } from 'src/auth/dtos/req/category.create.payload.dto';
 import { CategoryUpdatePayloadDto } from 'src/auth/dtos/req/category.update.payload.dto';
 import { CategoryAllResponseDto } from 'src/auth/dtos/res/category.all.response.dto';
+import { StringResponseDto } from 'src/auth/dtos/res/string.response.dto';
+import { BoardEntity } from 'src/entities/board.entity';
 import { CategoryEntity } from 'src/entities/category.entity';
 import { Repository } from 'typeorm';
 
@@ -11,6 +13,9 @@ export class CategoriesService {
   constructor(
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: Repository<CategoryEntity>,
+
+    @InjectRepository(BoardEntity)
+    private readonly boardRepository: Repository<BoardEntity>,
   ) {}
 
   async getAllCategories(
@@ -35,10 +40,18 @@ export class CategoriesService {
     userId: number,
     categoryCreatePayloadDto: CategoryCreatePayloadDto,
   ): Promise<CategoryAllResponseDto> {
+    const board = await this.boardRepository.findOne({
+      where: { id: categoryCreatePayloadDto.board_id, user: { id: userId } },
+    });
+    if (!board) {
+      throw new BadRequestException('Board not found');
+    }
+
     const newCategory = this.categoryRepository.create({
       board: { id: categoryCreatePayloadDto.board_id },
       category_name: categoryCreatePayloadDto.category_name,
     });
+
     const savedCategory = await this.categoryRepository.save(newCategory);
 
     const response: CategoryAllResponseDto = {
@@ -90,7 +103,10 @@ export class CategoriesService {
     return response;
   }
 
-  async deleteCategory(boardId: number, categoryId: number): Promise<string> {
+  async deleteCategory(
+    boardId: number,
+    categoryId: number,
+  ): Promise<StringResponseDto> {
     const category = await this.categoryRepository.findOne({
       where: { id: categoryId, board: { id: boardId } },
     });
@@ -101,6 +117,8 @@ export class CategoriesService {
 
     await this.categoryRepository.delete(category.id);
 
-    return 'Category deleted successfully';
+    return {
+      message: 'Category deleted successfully',
+    };
   }
 }

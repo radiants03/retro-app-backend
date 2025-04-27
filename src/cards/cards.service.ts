@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CardCreatePayloadDto } from 'src/auth/dtos/req/card.create.payload.dto';
 import { CardUpdatePayloadDto } from 'src/auth/dtos/req/card.update.payload.dto';
 import { CardAllResponseDto } from 'src/auth/dtos/res/card.all.response.dto';
+import { StringResponseDto } from 'src/auth/dtos/res/string.response.dto';
 import { CardEntity } from 'src/entities/card.entity';
 import { formatDate } from 'src/utils/utils';
 import { Repository } from 'typeorm';
@@ -113,7 +114,10 @@ export class CardsService {
     return response;
   }
 
-  async deleteCard(categoryId: number, cardId: number): Promise<string> {
+  async deleteCard(
+    categoryId: number,
+    cardId: number,
+  ): Promise<StringResponseDto> {
     const card = await this.cardRepository.findOne({
       where: { id: cardId, category: { id: categoryId } },
     });
@@ -124,10 +128,13 @@ export class CardsService {
 
     await this.cardRepository.remove(card);
 
-    return 'Card deleted successfully';
+    return { message: 'Card deleted successfully' };
   }
 
-  async likeCard(categoryId: number, cardId: number): Promise<CardAllResponseDto> {
+  async likeCard(
+    categoryId: number,
+    cardId: number,
+  ): Promise<CardAllResponseDto> {
     const card = await this.cardRepository.findOne({
       where: { id: cardId, category: { id: categoryId } },
     });

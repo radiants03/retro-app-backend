@@ -6,6 +6,7 @@ import { BoardUpdatePayloadDto } from 'src/auth/dtos/req/board.update.payload.dt
 import { BoardAllResponseDto } from 'src/auth/dtos/res/board.all.response.dto';
 import { BoardCreateResponseDto } from 'src/auth/dtos/res/board.create.response.dto';
 import { BoardSingleResponseDto } from 'src/auth/dtos/res/board.single.response.dto copy';
+import { StringResponseDto } from 'src/auth/dtos/res/string.response.dto';
 import { BoardEntity } from 'src/entities/board.entity';
 import { SortBy } from 'src/utils/constants';
 import { formatDate } from 'src/utils/utils';
@@ -19,17 +20,29 @@ export class BoardsService {
   ) {}
 
   async getAllBoards(
+    userId: number,
     boardAllPayloadDto: BoardAllPayloadDto,
   ): Promise<BoardAllResponseDto[]> {
     const boards = await this.boardRepository.find({
+      where: { user: { id: userId } },
+      relations: ['categories', 'categories.cards'],
       order: { created_date: boardAllPayloadDto.sortBy || SortBy.DESC },
     });
 
-    const response: BoardAllResponseDto[] = boards.map((board) => ({
-      id: board.id,
-      title: board.title,
-      created_date: formatDate(board.created_date),
-    }));
+    const response: BoardAllResponseDto[] = boards.map((board) => {
+      const sortedCategories = (board.categories || []).sort(
+        (a, b) => a.id - b.id,
+      );
+
+      return {
+        id: board.id,
+        title: board.title,
+        created_date: formatDate(board.created_date),
+        cardCountPerCategory: sortedCategories.map(
+          (category) => category.cards.length || 0,
+        ),
+      };
+    });
 
     return response;
   }
@@ -106,7 +119,10 @@ export class BoardsService {
     return response;
   }
 
-  async deleteBoard(boardId: number, userId: number): Promise<string> {
+  async deleteBoard(
+    boardId: number,
+    userId: number,
+  ): Promise<StringResponseDto> {
     const board = await this.boardRepository.findOne({
       where: { id: boardId, user: { id: userId } },
     });
@@ -117,6 +133,8 @@ export class BoardsService {
 
     await this.boardRepository.remove(board);
 
-    return 'Board deleted successfully';
+    return {
+      message: 'Board deleted successfully'
+    };
   }
 }

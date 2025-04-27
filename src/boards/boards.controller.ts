@@ -23,8 +23,8 @@ export class BoardsController {
 
   @Post('search')
   @UseGuards(AuthGuard)
-  async getAllBoards(@Body() boardAllPayloadDto: BoardAllPayloadDto) {
-    return this.boardsService.getAllBoards(boardAllPayloadDto);
+  async getAllBoards(@Body() boardAllPayloadDto: BoardAllPayloadDto, @Req() req) {
+    return this.boardsService.getAllBoards(req.userId, boardAllPayloadDto);
   }
 
   @Post('create')

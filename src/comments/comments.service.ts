@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CommentCreatePayloadDto } from 'src/auth/dtos/req/comment.create.payload.dto';
 import { CommentUpdatePayloadDto } from 'src/auth/dtos/req/comment.update.payload.dto';
 import { CommentAllResponseDto } from 'src/auth/dtos/res/comment.all.response.dto';
+import { StringResponseDto } from 'src/auth/dtos/res/string.response.dto';
 import { CommentEntity } from 'src/entities/comment.entity';
 import { Repository } from 'typeorm';
 
@@ -10,17 +11,18 @@ import { Repository } from 'typeorm';
 export class CommentsService {
   constructor(
     @InjectRepository(CommentEntity)
-    private readonly cardRepository: Repository<CommentEntity>,
+    private readonly commentRepository: Repository<CommentEntity>,
   ) {}
 
   async getAllComments(cardId: number): Promise<CommentAllResponseDto[]> {
-    const comments = await this.cardRepository.find({
+    const comments = await this.commentRepository.find({
       where: { card: { id: cardId } },
       order: { created_date: 'ASC' },
     });
 
     const response: CommentAllResponseDto[] = comments.map((comment) => {
       return {
+        id: comment.id,
         username: comment.username,
         content: comment.content,
       };
@@ -32,12 +34,12 @@ export class CommentsService {
   async createComment(
     commentCreatePayloadDto: CommentCreatePayloadDto,
   ): Promise<CommentAllResponseDto> {
-    const comment = this.cardRepository.create({
+    const comment = this.commentRepository.create({
       card: { id: commentCreatePayloadDto.cardId },
       content: commentCreatePayloadDto.content,
       username: commentCreatePayloadDto.username,
     });
-    const savedComment = await this.cardRepository.save(comment);
+    const savedComment = await this.commentRepository.save(comment);
 
     const response: CommentAllResponseDto = {
       username: savedComment.username,
@@ -50,7 +52,7 @@ export class CommentsService {
     cardId: number,
     commentId: number,
   ): Promise<CommentAllResponseDto> {
-    const comment = await this.cardRepository.findOne({
+    const comment = await this.commentRepository.findOne({
       where: { id: commentId, card: { id: cardId } },
     });
 
@@ -70,7 +72,7 @@ export class CommentsService {
     commentId: number,
     commentUpdatePayloadDto: CommentUpdatePayloadDto,
   ): Promise<CommentAllResponseDto> {
-    const comment = await this.cardRepository.findOne({
+    const comment = await this.commentRepository.findOne({
       where: { id: commentId, card: { id: cardId } },
     });
 
@@ -79,7 +81,7 @@ export class CommentsService {
     }
 
     comment.content = commentUpdatePayloadDto.content;
-    const updatedComment = await this.cardRepository.save(comment);
+    const updatedComment = await this.commentRepository.save(comment);
 
     const response: CommentAllResponseDto = {
       username: updatedComment.username,
@@ -88,8 +90,11 @@ export class CommentsService {
     return response;
   }
 
-  async deleteComment(cardId: number, commentId: number): Promise<string> {
-    const comment = await this.cardRepository.findOne({
+  async deleteComment(
+    cardId: number,
+    commentId: number,
+  ): Promise<StringResponseDto> {
+    const comment = await this.commentRepository.findOne({
       where: { id: commentId, card: { id: cardId } },
     });
 
@@ -97,8 +102,10 @@ export class CommentsService {
       throw new BadRequestException('Comment not found');
     }
 
-    await this.cardRepository.remove(comment);
+    await this.commentRepository.remove(comment);
 
-    return 'Comment deleted successfully';
+    return {
+      message: 'Comment deleted successfully',
+    };
   }
 }

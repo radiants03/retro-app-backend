@@ -41,7 +41,7 @@ export class CategoriesService {
     categoryCreatePayloadDto: CategoryCreatePayloadDto,
   ): Promise<CategoryAllResponseDto> {
     const board = await this.boardRepository.findOne({
-      where: { id: categoryCreatePayloadDto.board_id, user: { id: userId } },
+      where: { id: categoryCreatePayloadDto.board_id},
     });
     if (!board) {
       throw new BadRequestException('Board not found');

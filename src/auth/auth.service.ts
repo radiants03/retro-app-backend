@@ -15,6 +15,8 @@ import { RefreshTokenPayloadDto } from './dtos/req/refreshToken.payload.dto';
 import { UserChangePasswordPayloadDto } from './dtos/req/user.change.password.payload.dto';
 import { UserLoginPayloadDto } from './dtos/req/user.login.payload.dto';
 import { UserRegisterPayloadDto } from './dtos/req/user.register.payload.dto';
+import { UserResetPasswordPayloadDto } from './dtos/req/user.reset.password.payload.dto';
+import { StringResponseDto } from './dtos/res/string.response.dto';
 import { UserLoginResponseDto } from './dtos/res/user.login.response.dto';
 import { UserProfileResponseDto } from './dtos/res/user.profile.response.dto';
 import { UserRegisterResponseDto } from './dtos/res/user.register.response.dto';
@@ -155,6 +157,34 @@ export class AuthService {
     };
   }
 
+  async resetPassword(resetPasswordDto: UserResetPasswordPayloadDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email: resetPasswordDto.email,
+        first_name: resetPasswordDto.first_name,
+      },
+    });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (resetPasswordDto.new_password !== resetPasswordDto.confirm_password) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    const hashedPassword = await bcrypt.hash(
+      resetPasswordDto.new_password,
+      parseInt(process.env.SALT_ROUNDS || '10'),
+    );
+
+    user.password = hashedPassword;
+    await this.userRepository.save(user);
+
+    return {
+      message: 'Password reset successfully',
+    };
+  }
+
   async refresh(refreshTokenDto: RefreshTokenPayloadDto) {
     const token = await this.refreshTokenRepository.findOne({
       where: {
@@ -201,5 +231,9 @@ export class AuthService {
     });
     await this.refreshTokenRepository.save(refreshToken);
     return refreshToken.token;
+  }
+
+  async logout(): Promise<StringResponseDto> {
+    return { message: 'Logged out successfully' };
   }
 }

@@ -6,6 +6,7 @@ import { RefreshTokenPayloadDto } from './dtos/req/refreshToken.payload.dto';
 import { UserChangePasswordPayloadDto } from './dtos/req/user.change.password.payload.dto';
 import { UserLoginPayloadDto } from './dtos/req/user.login.payload.dto';
 import { UserRegisterPayloadDto } from './dtos/req/user.register.payload.dto';
+import { UserResetPasswordPayloadDto } from './dtos/req/user.reset.password.payload.dto';
 
 @ApiBearerAuth()
 @Controller('auth')
@@ -40,5 +41,15 @@ export class AuthController {
     @Req() req,
   ) {
     return this.authService.changePassword(req.userId, changePasswordDto);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: UserResetPasswordPayloadDto) {
+    return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Post('logout')
+  async logout() {
+    return this.authService.logout();
   }
 }
